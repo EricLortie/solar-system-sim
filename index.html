@@ -1932,6 +1932,47 @@
             };
         }
 
+        // Zoom-aware scaling to reduce clutter at low zoom levels
+        // Uses non-linear scaling: objects shrink faster when zoomed out
+        function getZoomScale(baseSize, options = {}) {
+            const {
+                minSize = 0.5,
+                maxSize = 50,
+                zoomPower = 0.7,  // < 1 means objects shrink faster when zoomed out
+                threshold = 0.3   // Below this zoom, objects shrink more aggressively
+            } = options;
+
+            let scale;
+            if (camera.zoom < threshold) {
+                // Aggressive shrinking at very low zoom
+                scale = Math.pow(camera.zoom / threshold, 1.5) * Math.pow(threshold, zoomPower);
+            } else {
+                // Normal non-linear scaling
+                scale = Math.pow(camera.zoom, zoomPower);
+            }
+
+            const size = baseSize * scale;
+            return Math.max(minSize, Math.min(maxSize, size));
+        }
+
+        // Density-based culling - skip rendering some objects when zoomed out
+        function shouldRenderAtZoom(index, totalCount, objectType = 'asteroid') {
+            if (camera.zoom >= 0.5) return true; // Render all when reasonably zoomed in
+
+            // Calculate how many to skip based on zoom level and object type
+            // Kuiper belt objects are farther out, so we can cull them more aggressively
+            const densityThresholds = {
+                'asteroid': 0.3,
+                'kuiper': 0.4,
+                'trojan': 0.35
+            };
+            const density = densityThresholds[objectType] || 0.3;
+            const renderRatio = Math.max(0.05, camera.zoom / density);
+            const skipInterval = Math.max(1, Math.floor(1 / renderRatio));
+
+            return index % skipInterval === 0;
+        }
+
         function screenToWorld(x, y) {
             return {
                 x: (x - canvas.width / 2) / camera.zoom + camera.x,
@@ -2281,11 +2322,19 @@
             }
 
             const pos = worldToScreen(planetPos.x, planetPos.y);
-            const visualRadius = planet.visualRadius * camera.zoom;
+            // Use zoom-aware scaling - planets have higher min size to stay visible
+            const visualRadius = getZoomScale(planet.visualRadius, {
+                minSize: 2,
+                maxSize: 40,
+                zoomPower: 0.75,
+                threshold: 0.25
+            });
 
             // Draw trojan asteroids
             if (displayOptions.asteroids && planet.trojans) {
-                planet.trojans.forEach(trojan => {
+                planet.trojans.forEach((trojan, index) => {
+                    // Cull trojans at low zoom
+                    if (!shouldRenderAtZoom(index, planet.trojans.length, 'asteroid')) return;
                     const lagrangeAngle = planetPos.angle + (trojan.lagrangePoint === 4 ? Math.PI / 3 : -Math.PI / 3);
                     const tAngle = lagrangeAngle + trojan.offsetAngle;
                     const tRadius = planet.orbitRadius + trojan.offsetRadius;
@@ -2293,9 +2342,11 @@
                     const ty = Math.sin(tAngle) * tRadius;
                     const transformed = applyTransform(tx, ty);
                     const tPos = worldToScreen(transformed.x, transformed.y);
+                    const trojanSize = getZoomScale(trojan.size, { minSize: 0.3, maxSize: 3, zoomPower: 0.6 });
 
+                    if (trojanSize < 0.3) return;
                     ctx.beginPath();
-                    ctx.arc(tPos.x, tPos.y, Math.max(0.5, trojan.size * camera.zoom), 0, Math.PI * 2);
+                    ctx.arc(tPos.x, tPos.y, trojanSize, 0, Math.PI * 2);
                     ctx.fillStyle = trojan.color;
                     ctx.fill();
                 });
@@ -2490,7 +2541,10 @@
         function drawAsteroidBelt(belt) {
             if (!displayOptions.asteroids || !belt) return;
 
-            belt.asteroids.forEach(asteroid => {
+            belt.asteroids.forEach((asteroid, index) => {
+                // Density culling at low zoom
+                if (!shouldRenderAtZoom(index, belt.asteroids.length, 'asteroid')) return;
+
                 // Use Kepler-based orbital motion (same formula as planets)
                 const angularSpeed = (0.005 * CONFIG.timeScale) / asteroid.orbitalPeriod * Math.PI * 2;
                 asteroid.angle += angularSpeed;
@@ -2500,12 +2554,12 @@
                 const y = Math.sin(asteroid.angle) * r;
                 const transformed = applyTransform(x, y);
                 const pos = worldToScreen(transformed.x, transformed.y);
-                const size = asteroid.size * camera.zoom;
+                const size = getZoomScale(asteroid.size, { minSize: 0.3, maxSize: 3, zoomPower: 0.5 });
 
                 if (size < 0.3) return;
 
                 ctx.beginPath();
-                ctx.arc(pos.x, pos.y, Math.max(0.3, size), 0, Math.PI * 2);
+                ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
                 ctx.fillStyle = asteroid.color;
                 ctx.fill();
             });
@@ -2514,7 +2568,10 @@
         function drawKuiperBelt(belt) {
             if (!displayOptions.asteroids || !belt) return;
 
-            belt.objects.forEach(obj => {
+            belt.objects.forEach((obj, index) => {
+                // Density culling at low zoom (Kuiper belt is far out, cull more aggressively)
+                if (!shouldRenderAtZoom(index, belt.objects.length, 'kuiper')) return;
+
                 // Use Kepler-based orbital motion (same formula as planets)
                 const angularSpeed = (0.005 * CONFIG.timeScale) / obj.orbitalPeriod * Math.PI * 2;
                 obj.angle += angularSpeed;
@@ -2524,12 +2581,12 @@
                 const y = Math.sin(obj.angle) * r;
                 const transformed = applyTransform(x, y);
                 const pos = worldToScreen(transformed.x, transformed.y);
-                const size = obj.size * camera.zoom;
+                const size = getZoomScale(obj.size, { minSize: 0.2, maxSize: 2.5, zoomPower: 0.5 });
 
                 if (size < 0.2) return;
 
                 ctx.beginPath();
-                ctx.arc(pos.x, pos.y, Math.max(0.2, size), 0, Math.PI * 2);
+                ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
                 ctx.fillStyle = obj.color;
                 ctx.fill();
             });
