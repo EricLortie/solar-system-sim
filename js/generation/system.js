@@ -178,21 +178,30 @@ export function generateFromPreset(preset, rng) {
         }
     }
 
-    // Build comets
+    // Build comets with all required properties
     const comets = [];
     if (preset.comets && preset.comets.length > 0) {
+        const baseActivationRadius = 2.5 * Math.sqrt(star.luminosity) * PHYSICS.AU;
+
         for (const cData of preset.comets) {
             comets.push({
                 name: cData.name,
-                perihelion: cData.perihelion,
-                aphelion: cData.aphelion,
-                semiMajorAxis: (cData.perihelion + cData.aphelion) / 2,
+                perihelion: cData.perihelion * PHYSICS.AU,
+                aphelion: cData.aphelion * PHYSICS.AU,
+                semiMajorAxis: ((cData.perihelion + cData.aphelion) / 2) * PHYSICS.AU,
                 eccentricity: cData.eccentricity,
                 angle: rng.random(0, Math.PI * 2),
-                orbitAngle: rng.random(0, Math.PI * 2),
-                tailActive: false,
-                tailLength: 0,
-                color: '#88ccff'
+                orbitalPeriod: Math.sqrt(Math.pow((cData.perihelion + cData.aphelion) / 2, 3)) * 365,
+                inclination: rng.random(-0.3, 0.3),
+                size: rng.random(1, 3),
+                type: 'waterIce',
+                typeName: 'Water Ice Comet',
+                color: '#88ccff',
+                tailColor: '#aaddff',
+                dustColor: '#ffddaa',
+                volatility: 1.0,
+                tailBrightness: 1.0,
+                tailActivationRadius: baseActivationRadius
             });
         }
     }
