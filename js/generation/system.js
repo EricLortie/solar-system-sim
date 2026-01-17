@@ -14,7 +14,7 @@ import { generateAsteroidBelt, generateKuiperBelt } from './belts.js';
 export function generateFromPreset(preset, rng) {
     const starData = preset.star;
 
-    // Build the star object
+    // Build the star object (matching generateStar output format)
     const star = {
         name: starData.name,
         class: starData.class,
@@ -28,9 +28,11 @@ export function generateFromPreset(preset, rng) {
         habitableZoneInner: starData.habitableZoneInner,
         habitableZoneOuter: starData.habitableZoneOuter,
         innerLimit: starData.innerLimit,
-        visualRadius: Math.max(15, Math.min(60, 20 + Math.log(starData.luminosity + 1) * 10)),
+        visualRadius: 30 + starData.radius * 3,  // Match generateStar formula
         coronaSize: 1.3 + Math.log(starData.luminosity + 1) * 0.1,
-        flareChance: starData.class === 'M' ? 0.3 : 0.1
+        flareChance: starData.class === 'M' ? 0.3 : 0.1,
+        flares: [],  // Required for renderer
+        nextFlare: rng.random(2000, 8000)  // Required for renderer
     };
 
     // Build planets from preset data

@@ -4,7 +4,7 @@
 
 export const PHYSICS = {
     G: 1, // Gravitational constant (normalized)
-    AU: 100, // 1 AU in our distance units
+    AU: 200, // 1 AU in our distance units (increased for better visual spacing)
 
     // Calculate orbital period using Kepler's 3rd law: T^2 = (4*pi^2 * a^3) / (G * M)
     // Simplified: T = sqrt(a^3 / M) * 365 (in days, for a in AU, M in solar masses)
