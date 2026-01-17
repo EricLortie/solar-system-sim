@@ -120,11 +120,11 @@ function drawStar(star) {
     updateAndDrawFlares(star, pos, visualRadius);
 
     // Label
-    if (displayOptions.labels && camera.zoom > 0.3) {
-        ctx.fillStyle = '#ffffff88';
-        ctx.font = '12px sans-serif';
+    if (displayOptions.labels) {
+        ctx.fillStyle = '#ffffffcc';
+        ctx.font = '11px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(star.name, pos.x, pos.y + visualRadius + 20);
+        ctx.fillText(star.name, pos.x, pos.y + visualRadius + 12);
     }
 }
 
@@ -203,11 +203,11 @@ function drawSecondStar() {
     ctx.fillStyle = bodyGradient;
     ctx.fill();
 
-    if (displayOptions.labels && camera.zoom > 0.3) {
-        ctx.fillStyle = '#ffffff88';
+    if (displayOptions.labels) {
+        ctx.fillStyle = '#ffffffcc';
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(star.name, pos.x, pos.y + visualRadius + 15);
+        ctx.fillText(star.name, pos.x, pos.y + visualRadius + 10);
     }
 }
 
@@ -362,12 +362,13 @@ function drawPlanet(planet) {
         });
     }
 
-    // Label
-    if (displayOptions.labels && visualRadius > 3) {
-        ctx.fillStyle = planet.selected ? '#ffffff' : '#ffffff88';
-        ctx.font = planet.selected ? 'bold 12px sans-serif' : '11px sans-serif';
+    // Label - always show when labels enabled, essential when zoomed out
+    if (displayOptions.labels) {
+        ctx.fillStyle = planet.selected ? '#ffffff' : '#ffffffcc';
+        ctx.font = planet.selected ? 'bold 11px sans-serif' : '10px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(planet.name, pos.x, pos.y + visualRadius + 15);
+        const labelOffset = Math.max(visualRadius + 8, 12);
+        ctx.fillText(planet.name, pos.x, pos.y + labelOffset);
     }
 }
 
