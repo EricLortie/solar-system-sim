@@ -241,8 +241,9 @@ export function generateSolarSystem(rng, seed = null) {
     // Determine planet count based on archetype
     const planetCount = rng.randomInt(archetype.planetCount.min, archetype.planetCount.max);
 
-    // Starting orbit in AU
-    let currentOrbitAU = star.innerLimit * 2;
+    // Starting orbit in AU - ensure planets are visually outside the star
+    // Star visual radius is ~22 units, AU is 200 units, so minimum ~0.15 AU
+    let currentOrbitAU = Math.max(star.innerLimit * 2, 0.2);
 
     // If binary, start planets further out (beyond binary orbit)
     if (secondaryStar) {
@@ -252,7 +253,7 @@ export function generateSolarSystem(rng, seed = null) {
     // Hot Jupiter archetype: place gas giant very close first
     let hotJupiterIndex = -1;
     if (archetype.features.hasHotJupiter && planetCount > 0) {
-        const hotJupiterOrbit = rng.random(0.03, 0.08); // Very close orbit (< 0.1 AU)
+        const hotJupiterOrbit = rng.random(0.15, 0.25); // Close orbit but visually outside star
         const hotJupiter = generatePlanet(rng, 0, hotJupiterOrbit, star, selectedArchetype, 'gasGiant');
         planets.push(hotJupiter);
         hotJupiterIndex = 0;
