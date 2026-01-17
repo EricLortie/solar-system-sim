@@ -69,10 +69,59 @@ Click **Generate System** to create a new random solar system, or enter a seed f
 
 ## Technical Details
 
-- Pure vanilla JavaScript (ES6+)
+- Pure vanilla JavaScript (ES6+ modules)
 - HTML5 Canvas 2D rendering
-- Single-file architecture (~3400 lines)
+- Modular architecture for scalability and customization
 - No external dependencies
+
+## Project Structure
+
+```
+solar-system-sim/
+├── index.html              # Entry point
+├── css/
+│   └── styles.css          # All styling
+├── js/
+│   ├── main.js             # Application entry & game loop
+│   ├── config.js           # User-configurable settings
+│   ├── core/
+│   │   ├── rng.js          # Seeded random number generator
+│   │   ├── camera.js       # Camera controls & transforms
+│   │   └── state.js        # Global application state
+│   ├── constants/
+│   │   ├── physics.js      # Orbital mechanics & Kepler's laws
+│   │   ├── archetypes.js   # System archetypes (Solar-like, Hot Jupiter, etc.)
+│   │   ├── stars.js        # Star class definitions (O through M)
+│   │   ├── planets.js      # Planet type definitions
+│   │   ├── moons.js        # Moon type definitions
+│   │   └── comets.js       # Comet type definitions
+│   ├── generation/
+│   │   ├── names.js        # Procedural name generation
+│   │   ├── stars.js        # Star generation
+│   │   ├── planets.js      # Planet & surface generation
+│   │   ├── moons.js        # Moon generation
+│   │   ├── comets.js       # Comet generation
+│   │   ├── belts.js        # Asteroid & Kuiper belt generation
+│   │   └── system.js       # Full system orchestration
+│   ├── rendering/
+│   │   ├── utils.js        # Shared rendering utilities
+│   │   └── renderer.js     # All drawing operations
+│   └── ui/
+│       ├── panels.js       # Info panel updates
+│       └── controls.js     # Input handling & UI controls
+└── README.md
+```
+
+## Customization
+
+The modular architecture makes it easy to customize:
+
+- **Add new planet types**: Edit `js/constants/planets.js`
+- **Add new system archetypes**: Edit `js/constants/archetypes.js`
+- **Modify physics**: Edit `js/constants/physics.js`
+- **Change generation rules**: Edit files in `js/generation/`
+- **Customize rendering**: Edit `js/rendering/renderer.js`
+- **Adjust default settings**: Edit `js/config.js`
 
 ## Vibecoded
 
