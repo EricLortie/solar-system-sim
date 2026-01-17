@@ -26,29 +26,46 @@ export function initControls(onGenerate) {
 
     // Mobile panel toggles
     const toggleControls = document.getElementById('toggle-controls');
+    const toggleView = document.getElementById('toggle-view');
     const toggleInfo = document.getElementById('toggle-info');
     const controlsPanel = document.getElementById('controls');
+    const viewPanel = document.getElementById('view-controls');
     const infoPanel = document.getElementById('info-panel');
+
+    function hideAllPanels() {
+        controlsPanel.classList.remove('mobile-visible');
+        viewPanel.classList.remove('mobile-visible');
+        infoPanel.classList.remove('mobile-visible');
+    }
 
     if (toggleControls) {
         toggleControls.addEventListener('click', () => {
-            controlsPanel.classList.toggle('mobile-visible');
-            infoPanel.classList.remove('mobile-visible');
+            const isVisible = controlsPanel.classList.contains('mobile-visible');
+            hideAllPanels();
+            if (!isVisible) controlsPanel.classList.add('mobile-visible');
+        });
+    }
+
+    if (toggleView) {
+        toggleView.addEventListener('click', () => {
+            const isVisible = viewPanel.classList.contains('mobile-visible');
+            hideAllPanels();
+            if (!isVisible) viewPanel.classList.add('mobile-visible');
         });
     }
 
     if (toggleInfo) {
         toggleInfo.addEventListener('click', () => {
-            infoPanel.classList.toggle('mobile-visible');
-            controlsPanel.classList.remove('mobile-visible');
+            const isVisible = infoPanel.classList.contains('mobile-visible');
+            hideAllPanels();
+            if (!isVisible) infoPanel.classList.add('mobile-visible');
         });
     }
 
     // Close panels when clicking on canvas (mobile)
     canvas.addEventListener('click', (e) => {
         if (window.innerWidth <= 600) {
-            controlsPanel.classList.remove('mobile-visible');
-            infoPanel.classList.remove('mobile-visible');
+            hideAllPanels();
         }
     }, true);
 

@@ -692,65 +692,56 @@ body {
 
 @media (max-width: 600px) {
     :root {
-        --panel-width: calc(100vw - 40px);
+        --panel-width: calc(100vw - 32px);
     }
 
     .panel {
-        border-radius: 8px;
-        padding: 12px;
+        border-radius: 12px 12px 0 0;
+        padding: 16px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
     }
 
     .panel h2 {
-        font-size: 13px;
+        font-size: 14px;
+        margin-bottom: 10px;
     }
 
-    #controls {
-        top: auto;
-        bottom: 80px;
-        left: 20px;
-        right: 20px;
-        width: auto;
-        max-height: 50vh;
-        display: none;
-    }
-
-    #controls.mobile-visible {
-        display: block;
-    }
-
-    #view-controls {
-        top: auto;
-        bottom: 80px;
-        left: 20px;
-        right: 20px;
-        width: auto;
-        max-height: 50vh;
-    }
-
+    /* Hide all panels by default on mobile */
+    #controls,
+    #view-controls,
     #info-panel {
+        position: fixed;
         top: auto;
-        bottom: 80px;
-        left: 20px;
-        right: 20px;
+        bottom: 60px;
+        left: 16px;
+        right: 16px;
         width: auto;
-        max-height: 50vh;
+        max-height: 55vh;
         display: none;
+        z-index: 150;
     }
 
+    /* Show panel when toggled */
+    #controls.mobile-visible,
+    #view-controls.mobile-visible,
     #info-panel.mobile-visible {
         display: block;
     }
 
     .panel-toggle {
         display: flex;
+        z-index: 200;
     }
 
+    /* Toolbar at top on mobile */
     .toolbar {
+        top: 12px;
+        bottom: auto;
         gap: 6px;
     }
 
     .toolbar-btn {
-        padding: 6px 10px;
+        padding: 8px 12px;
         font-size: 11px;
     }
 
@@ -759,37 +750,45 @@ body {
         height: 14px;
     }
 
+    /* Bottom bar above toggle buttons */
     .bottom-bar {
-        bottom: 12px;
-        right: 12px;
-        left: 12px;
+        bottom: 60px;
+        right: 16px;
+        left: 16px;
         justify-content: center;
         gap: 8px;
-        font-size: 11px;
+        font-size: 10px;
+        flex-wrap: wrap;
     }
 
     .time-display,
     .scale-display {
-        padding: 6px 10px;
+        padding: 5px 8px;
+    }
+
+    /* Hide scale bar on mobile to save space */
+    .scale-bar {
+        display: none;
     }
 
     .preset-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 4px;
     }
 
     .preset-btn {
-        padding: 6px 4px;
+        padding: 8px 4px;
         font-size: 10px;
     }
 
     .btn {
-        padding: 8px 12px;
+        padding: 10px 12px;
         font-size: 12px;
     }
 
     .toggle-item {
         font-size: 12px;
+        padding: 4px 0;
     }
 
     .toggle-switch {
@@ -810,17 +809,49 @@ body {
         display: none !important;
     }
 
-    .bottom-bar {
-        bottom: 70px;
-    }
-
+    /* Toggle buttons at bottom - spread across */
     #toggle-controls {
-        bottom: 16px;
+        bottom: 12px;
         left: 16px;
     }
 
+    #toggle-view {
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
     #toggle-info {
-        bottom: 16px;
+        bottom: 12px;
         right: 16px;
+    }
+
+    /* Collapse sections by default on mobile for less scrolling */
+    .section.mobile-collapse {
+        /* Can be added to sections that should start collapsed */
+    }
+
+    /* Smaller section headers on mobile */
+    .section-header {
+        padding: 8px 10px;
+    }
+
+    .section-header h3 {
+        font-size: 10px;
+    }
+
+    .section-content {
+        padding: 0 10px 10px 10px;
+    }
+
+    /* Config inputs */
+    .config-input {
+        width: 50px;
+        padding: 3px 6px;
+    }
+
+    .seed-input {
+        padding: 10px;
+        font-size: 14px;
     }
 }
