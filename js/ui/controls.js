@@ -4,6 +4,7 @@ import { CONFIG } from '../config.js';
 import { camera, resetCamera, screenToWorld } from '../core/camera.js';
 import { state, displayOptions, cinematic } from '../core/state.js';
 import { getUnreadNotifications, markAllNotificationsRead, getActiveInterstellarObjects, getPassingSystems, spawnInterstellarByType } from '../core/events.js';
+import { getInterstellarPosition } from '../generation/interstellar.js';
 import { getRng } from '../core/rng.js';
 import { updateInfoPanel, updateSelectedInfo, updateCinematicStatus } from './panels.js';
 import { getPlanetPosition } from '../rendering/utils.js';
@@ -710,6 +711,11 @@ export function updateNotifications() {
 }
 
 function showNotificationToast(notification) {
+    // Slow down time when a new interstellar object is detected
+    if (notification.priority !== 'low') {
+        slowTimeForEvent();
+    }
+
     const toast = document.createElement('div');
     toast.className = `notification-toast priority-${notification.priority}`;
     toast.style.cssText = `
@@ -724,7 +730,7 @@ function showNotificationToast(notification) {
         animation: slideIn 0.3s ease-out;
         border-left: 3px solid ${notification.priority === 'high' ? '#ff6666' : '#4a90d9'};
     `;
-    toast.textContent = notification.message;
+    toast.innerHTML = `${notification.message} <span style="opacity: 0.7; font-size: 11px;">(click to focus)</span>`;
 
     // Add animation
     const style = document.createElement('style');
@@ -746,18 +752,64 @@ function showNotificationToast(notification) {
     notificationContainer.appendChild(toast);
 
     // Auto-dismiss after delay
-    const dismissTime = notification.priority === 'high' ? 6000 : 4000;
-    setTimeout(() => {
+    const dismissTime = notification.priority === 'high' ? 8000 : 5000;
+    const dismissTimeout = setTimeout(() => {
         toast.style.animation = 'fadeOut 0.3s ease-out forwards';
         setTimeout(() => toast.remove(), 300);
     }, dismissTime);
 
-    // Click to dismiss
+    // Click to focus on the object
     toast.addEventListener('click', () => {
+        clearTimeout(dismissTimeout);
+        focusOnInterstellarObject(notification.object);
         toast.style.animation = 'fadeOut 0.2s ease-out forwards';
         setTimeout(() => toast.remove(), 200);
     });
 }
+
+// Slow time to a normal pace when an event occurs
+function slowTimeForEvent() {
+    const targetSpeed = 1.0;
+    if (CONFIG.timeScale > targetSpeed) {
+        CONFIG.timeScale = targetSpeed;
+        // Update the slider UI
+        const speedSlider = document.getElementById('speed-slider');
+        const speedValue = document.getElementById('speed-value');
+        if (speedSlider && speedValue) {
+            // Reverse the formula: value = 25 * log10(speed) + 50
+            const sliderValue = 25 * Math.log10(targetSpeed) + 50;
+            speedSlider.value = sliderValue;
+            speedValue.textContent = targetSpeed.toFixed(1) + 'x';
+        }
+    }
+}
+
+// Focus camera on an interstellar object
+function focusOnInterstellarObject(obj) {
+    if (!obj) return;
+
+    stopCinematic();
+
+    // Get the object's current position
+    const pos = getInterstellarPosition(obj, state.time);
+
+    // Move camera to the object
+    camera.targetX = pos.x;
+    camera.targetY = pos.y;
+    camera.targetZoom = obj.type === 'passingSystem' ? 0.6 : 1.5;
+    camera.following = null; // Don't follow since it's on a hyperbolic path
+
+    // Deselect any planet
+    if (state.solarSystem) {
+        state.solarSystem.planets.forEach(p => p.selected = false);
+    }
+    state.selectedObject = null;
+    updateSelectedInfo(null);
+    updateInfoPanel();
+}
+
+// Store references to interstellar objects for click handling
+let interstellarObjectMap = new Map();
 
 function updateInterstellarInfo() {
     const interstellarSection = document.getElementById('section-interstellar');
@@ -768,6 +820,11 @@ function updateInterstellarInfo() {
 
     const objects = getActiveInterstellarObjects();
     const systems = getPassingSystems();
+
+    // Update the object map
+    interstellarObjectMap.clear();
+    objects.forEach(obj => interstellarObjectMap.set(obj.id, obj));
+    systems.forEach(sys => interstellarObjectMap.set(sys.id, sys));
 
     if (objects.length === 0 && systems.length === 0) {
         content.innerHTML = '<div class="info-item"><span>No active visitors</span></div>';
@@ -793,4 +850,15 @@ function updateInterstellarInfo() {
     });
 
     content.innerHTML = html;
+
+    // Add click handlers to interstellar items
+    content.querySelectorAll('.interstellar-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const objectId = parseInt(item.dataset.objectId);
+            const obj = interstellarObjectMap.get(objectId);
+            if (obj) {
+                focusOnInterstellarObject(obj);
+            }
+        });
+    });
 }
