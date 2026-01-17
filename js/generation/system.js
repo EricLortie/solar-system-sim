@@ -28,7 +28,7 @@ export function generateFromPreset(preset, rng) {
         habitableZoneInner: starData.habitableZoneInner,
         habitableZoneOuter: starData.habitableZoneOuter,
         innerLimit: starData.innerLimit,
-        visualRadius: 30 + starData.radius * 3,  // Match generateStar formula
+        visualRadius: 20 + starData.radius * 2,  // Reduced for better proportions
         coronaSize: 1.3 + Math.log(starData.luminosity + 1) * 0.1,
         flareChance: starData.class === 'M' ? 0.3 : 0.1,
         flares: [],  // Required for renderer

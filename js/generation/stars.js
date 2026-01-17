@@ -33,7 +33,7 @@ export function generateStar(rng) {
         habitableZoneOuter: hzOuter,
         frostLine: frostLine,
         innerLimit: innerLimit,
-        visualRadius: 30 + radius * 3,
+        visualRadius: 20 + radius * 2,
         flares: [],
         nextFlare: rng.random(2000, 8000)
     };
