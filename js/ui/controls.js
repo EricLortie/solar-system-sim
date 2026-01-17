@@ -427,74 +427,202 @@ function applyPreset(preset) {
     document.getElementById('rotation-value').textContent = camera.targetRotation + '°';
 }
 
-// Cinematic mode
-const CINEMATIC_SCENES = [
-    { type: 'overview', duration: 1 },
-    { type: 'planet', duration: 1 },
-    { type: 'sweep', duration: 1 },
-    { type: 'tilt', duration: 1 }
-];
+// Cinematic mode - structured sequences for engaging camera work
+const CINEMATIC_SEQUENCES = {
+    // Grand tour: overview then visit planets inner to outer
+    grandTour: (planets) => {
+        const scenes = [{ type: 'dramatic-open', duration: 1.2 }];
+        planets.forEach((planet, i) => {
+            scenes.push({ type: 'visit-planet', planet, duration: 0.8, index: i });
+        });
+        scenes.push({ type: 'pull-back-finale', duration: 1.5 });
+        return scenes;
+    },
+
+    // Focus on the most interesting objects
+    highlights: (planets) => {
+        const scenes = [{ type: 'overview-angled', duration: 1 }];
+
+        // Find interesting planets: largest, ringed, most moons, habitable
+        const withRings = planets.filter(p => p.hasRings || p.prominentRings);
+        const largest = [...planets].sort((a, b) => b.radius - a.radius).slice(0, 2);
+        const habitable = planets.filter(p => p.inHabitableZone);
+        const withMoons = [...planets].sort((a, b) => b.moons.length - a.moons.length).slice(0, 2);
+
+        const featured = new Set();
+        [...largest, ...withRings, ...habitable, ...withMoons].forEach(p => {
+            if (p && !featured.has(p.id)) {
+                featured.add(p.id);
+                scenes.push({ type: 'feature-planet', planet: p, duration: 1.2 });
+            }
+        });
+
+        scenes.push({ type: 'sweep-around', duration: 1.3 });
+        return scenes;
+    },
+
+    // Dramatic reveal: start close, pull back majestically
+    reveal: (planets) => [
+        { type: 'star-closeup', duration: 1 },
+        { type: 'slow-pullback', duration: 2 },
+        { type: 'tilt-reveal', duration: 1.2 },
+        { type: 'outer-system', duration: 1.5 }
+    ],
+
+    // Orbit follow: pick a planet and follow it
+    orbitFollow: (planets) => {
+        const planet = planets[Math.floor(Math.random() * planets.length)];
+        return [
+            { type: 'overview-quick', duration: 0.6 },
+            { type: 'approach-planet', planet, duration: 0.8 },
+            { type: 'follow-orbit', planet, duration: 2.5 },
+            { type: 'departure-zoom', duration: 1 }
+        ];
+    }
+};
+
+let cinematicQueue = [];
+let currentSceneIndex = 0;
 
 function startCinematic() {
     cinematic.active = true;
     cinematic.sceneStart = Date.now();
-    cinematic.currentScene = null;
+
+    // Pick a random sequence type
+    const sequenceTypes = Object.keys(CINEMATIC_SEQUENCES);
+    const sequenceType = sequenceTypes[Math.floor(Math.random() * sequenceTypes.length)];
+    cinematicQueue = CINEMATIC_SEQUENCES[sequenceType](state.solarSystem.planets);
+    currentSceneIndex = 0;
+
     updateCinematicStatus(true);
-    nextCinematicScene();
+    executeCurrentScene();
 }
 
 export function stopCinematic() {
     cinematic.active = false;
     cinematic.currentScene = null;
+    cinematicQueue = [];
+    currentSceneIndex = 0;
     updateCinematicStatus(false);
 }
 
-function nextCinematicScene() {
-    if (!cinematic.active || !state.solarSystem) return;
+function executeCurrentScene() {
+    if (!cinematic.active || !state.solarSystem || currentSceneIndex >= cinematicQueue.length) {
+        // Sequence complete, start a new one
+        if (cinematic.active) {
+            startCinematic();
+        }
+        return;
+    }
 
-    const sceneTypes = CINEMATIC_SCENES.map(s => s.type);
-    const newSceneType = sceneTypes[Math.floor(Math.random() * sceneTypes.length)];
-
-    cinematic.currentScene = newSceneType;
+    const scene = cinematicQueue[currentSceneIndex];
+    cinematic.currentScene = scene.type;
     cinematic.sceneStart = Date.now();
 
-    switch(newSceneType) {
-        case 'overview':
+    // Calculate actual duration based on user setting
+    const baseDuration = scene.duration || 1;
+    const actualDuration = baseDuration * cinematic.sceneDuration;
+
+    switch(scene.type) {
+        case 'dramatic-open':
             camera.targetX = 0;
             camera.targetY = 0;
-            camera.targetZoom = 0.4 + Math.random() * 0.3;
-            camera.targetTilt = 20 + Math.random() * 30;
-            camera.targetRotation = Math.random() * 60 - 30;
+            camera.targetZoom = 0.5;
+            camera.targetTilt = 35;
+            camera.targetRotation = -20;
             camera.following = null;
             break;
-        case 'planet':
-            if (state.solarSystem.planets.length > 0) {
-                const planet = state.solarSystem.planets[Math.floor(Math.random() * state.solarSystem.planets.length)];
-                focusOnPlanet(planet);
-                camera.targetZoom = 1.5 + Math.random();
-                camera.targetTilt = Math.random() * 40 - 20;
+
+        case 'overview-angled':
+        case 'overview-quick':
+            camera.targetX = 0;
+            camera.targetY = 0;
+            camera.targetZoom = 0.45;
+            camera.targetTilt = 25;
+            camera.targetRotation = 15;
+            camera.following = null;
+            break;
+
+        case 'visit-planet':
+        case 'feature-planet':
+        case 'approach-planet':
+            if (scene.planet) {
+                selectPlanet(scene.planet);
+                camera.following = scene.planet;
+                camera.targetZoom = scene.type === 'feature-planet' ? 2.0 : 1.6;
+                camera.targetTilt = scene.planet.hasRings ? 40 : 15;
+                camera.targetRotation = (scene.index || 0) * 15 % 60 - 30;
             }
             break;
-        case 'sweep':
+
+        case 'follow-orbit':
+            if (scene.planet) {
+                camera.following = scene.planet;
+                camera.targetZoom = 1.8;
+                camera.targetTilt = 20;
+                // Rotation will naturally change as we follow
+            }
+            break;
+
+        case 'pull-back-finale':
+        case 'departure-zoom':
             camera.targetX = 0;
             camera.targetY = 0;
-            camera.targetZoom = 0.6;
-            camera.targetTilt = 15;
-            camera.targetRotation = (Math.random() - 0.5) * 180;
+            camera.targetZoom = 0.35;
+            camera.targetTilt = 45;
+            camera.targetRotation = 30;
             camera.following = null;
             break;
-        case 'tilt':
-            camera.targetTilt = -50 + Math.random() * 100;
+
+        case 'star-closeup':
+            camera.targetX = 0;
+            camera.targetY = 0;
+            camera.targetZoom = 2.5;
+            camera.targetTilt = 0;
+            camera.targetRotation = 0;
+            camera.following = null;
+            break;
+
+        case 'slow-pullback':
+            camera.targetZoom = 0.6;
+            camera.targetTilt = 20;
+            camera.targetRotation = 0;
+            camera.following = null;
+            break;
+
+        case 'tilt-reveal':
+            camera.targetTilt = 50;
+            camera.targetRotation = -25;
+            break;
+
+        case 'outer-system':
+            camera.targetZoom = 0.25;
+            camera.targetTilt = 30;
+            camera.following = null;
+            break;
+
+        case 'sweep-around':
+            camera.targetX = 0;
+            camera.targetY = 0;
+            camera.targetZoom = 0.5;
+            camera.targetTilt = 25;
+            camera.targetRotation = 120;
+            camera.following = null;
             break;
     }
 }
 
 export function updateCinematic() {
-    if (!cinematic.active) return;
+    if (!cinematic.active || cinematicQueue.length === 0) return;
+
+    const scene = cinematicQueue[currentSceneIndex];
+    const baseDuration = scene?.duration || 1;
+    const actualDuration = baseDuration * cinematic.sceneDuration;
 
     const elapsed = Date.now() - cinematic.sceneStart;
-    if (elapsed > cinematic.sceneDuration) {
-        nextCinematicScene();
+    if (elapsed > actualDuration) {
+        currentSceneIndex++;
+        executeCurrentScene();
     }
 }
 
