@@ -232,6 +232,16 @@ export function initControls(onGenerate) {
         onGenerate();
     });
 
+    // System preset buttons
+    document.querySelectorAll('.system-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const systemSeed = btn.dataset.system;
+            document.getElementById('seed-input').value = systemSeed;
+            stopCinematic();
+            onGenerate();
+        });
+    });
+
     // Reset view button
     document.getElementById('reset-view-btn').addEventListener('click', () => {
         stopCinematic();

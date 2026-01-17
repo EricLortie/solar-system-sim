@@ -372,20 +372,47 @@ function drawPlanet(planet) {
 }
 
 function drawPlanetRings(planet, pos, visualRadius, front) {
-    const ringInner = visualRadius * 1.4;
-    const ringOuter = visualRadius * 2.2;
     const tiltFactor = Math.cos(camera.tilt * Math.PI / 180);
 
-    ctx.beginPath();
-    if (front) {
-        ctx.ellipse(pos.x, pos.y, ringOuter, ringOuter * tiltFactor * 0.3, 0, 0, Math.PI);
-    } else {
-        ctx.ellipse(pos.x, pos.y, ringOuter, ringOuter * tiltFactor * 0.3, 0, Math.PI, Math.PI * 2);
-    }
-    ctx.ellipse(pos.x, pos.y, ringInner, ringInner * tiltFactor * 0.3, 0, front ? Math.PI : Math.PI * 2, front ? 0 : Math.PI, true);
+    // Saturn-like prominent rings have multiple bands
+    if (planet.prominentRings) {
+        const ringBands = [
+            { inner: 1.2, outer: 1.5, opacity: 0.7, color: '#d4c4a8' },  // C ring
+            { inner: 1.5, outer: 1.95, opacity: 0.85, color: '#e8dcc4' }, // B ring
+            { inner: 2.0, outer: 2.3, opacity: 0.75, color: '#ddd0b8' },  // A ring
+        ];
 
-    ctx.fillStyle = planet.ringColor;
-    ctx.fill();
+        ringBands.forEach(band => {
+            const ringInner = visualRadius * band.inner;
+            const ringOuter = visualRadius * band.outer;
+
+            ctx.beginPath();
+            if (front) {
+                ctx.ellipse(pos.x, pos.y, ringOuter, ringOuter * tiltFactor * 0.3, 0, 0, Math.PI);
+            } else {
+                ctx.ellipse(pos.x, pos.y, ringOuter, ringOuter * tiltFactor * 0.3, 0, Math.PI, Math.PI * 2);
+            }
+            ctx.ellipse(pos.x, pos.y, ringInner, ringInner * tiltFactor * 0.3, 0, front ? Math.PI : Math.PI * 2, front ? 0 : Math.PI, true);
+
+            ctx.fillStyle = band.color + Math.round(band.opacity * 255).toString(16).padStart(2, '0');
+            ctx.fill();
+        });
+    } else {
+        // Standard rings for other planets
+        const ringInner = visualRadius * 1.4;
+        const ringOuter = visualRadius * 2.2;
+
+        ctx.beginPath();
+        if (front) {
+            ctx.ellipse(pos.x, pos.y, ringOuter, ringOuter * tiltFactor * 0.3, 0, 0, Math.PI);
+        } else {
+            ctx.ellipse(pos.x, pos.y, ringOuter, ringOuter * tiltFactor * 0.3, 0, Math.PI, Math.PI * 2);
+        }
+        ctx.ellipse(pos.x, pos.y, ringInner, ringInner * tiltFactor * 0.3, 0, front ? Math.PI : Math.PI * 2, front ? 0 : Math.PI, true);
+
+        ctx.fillStyle = planet.ringColor;
+        ctx.fill();
+    }
 }
 
 function drawPlanetSurface(planet, pos, visualRadius) {

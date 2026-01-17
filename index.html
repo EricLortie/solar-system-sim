@@ -33,8 +33,26 @@
     <div id="controls" class="panel">
         <h2>Solar System Generator</h2>
 
-        <input type="text" class="seed-input" id="seed-input" placeholder="Enter seed (optional)">
+        <input type="text" class="seed-input" id="seed-input" placeholder="Enter seed (e.g., 'sol')">
         <button id="generate-btn" class="btn">Generate New System</button>
+
+        <div class="section" id="section-presets-systems">
+            <div class="section-header">
+                <h3>Real Systems</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="preset-grid">
+                    <button class="preset-btn system-preset-btn" data-system="sol">Sol System</button>
+                    <button class="preset-btn system-preset-btn" data-system="trappist-1">TRAPPIST-1</button>
+                    <button class="preset-btn system-preset-btn" data-system="kepler-90">Kepler-90</button>
+                </div>
+            </div>
+        </div>
 
         <div class="slider-group">
             <div class="slider-label">

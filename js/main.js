@@ -31,15 +31,16 @@ function init() {
 function generateNewSystem() {
     // Get seed from input or generate random
     const seedInput = document.getElementById('seed-input').value.trim();
-    const seed = seedInput ? setRandomSeed(seedInput) : setRandomSeed(Date.now());
+    const seed = seedInput || String(Date.now());
+    setRandomSeed(seed);
     state.currentSeed = seed;
 
     // Reset state
     resetState();
     resetCamera();
 
-    // Generate the solar system
-    state.solarSystem = generateSolarSystem(getRng());
+    // Generate the solar system (pass seed for preset detection)
+    state.solarSystem = generateSolarSystem(getRng(), seed);
 
     // Update UI
     updateInfoPanel();
