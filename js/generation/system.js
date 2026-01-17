@@ -196,9 +196,9 @@ export function generateFromPreset(preset, rng) {
                 size: rng.random(1, 3),
                 type: 'waterIce',
                 typeName: 'Water Ice Comet',
-                color: '#88ccff',
-                tailColor: '#aaddff',
-                dustColor: '#ffddaa',
+                color: '#aaddff',
+                tailColor: { r: 170, g: 220, b: 255 },
+                dustColor: { r: 255, g: 220, b: 180 },
                 volatility: 1.0,
                 tailBrightness: 1.0,
                 tailActivationRadius: baseActivationRadius
