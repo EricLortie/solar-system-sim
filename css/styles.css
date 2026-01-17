@@ -16,6 +16,7 @@
     --button-bg: rgba(74, 144, 217, 0.3);
     --toggle-active: #4a90d9;
     --toggle-inactive: #2a3a5a;
+    --panel-width: 260px;
 }
 
 body {
@@ -24,6 +25,7 @@ body {
     color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
 }
 
 #canvas {
@@ -72,8 +74,9 @@ body {
 #controls {
     top: 20px;
     left: 20px;
-    width: 260px;
+    width: var(--panel-width);
     max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
     overflow-y: auto;
 }
 
@@ -98,18 +101,122 @@ body {
 
 #view-controls {
     top: 20px;
-    left: 300px;
+    left: calc(var(--panel-width) + 40px);
     width: 220px;
     max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
     overflow-y: auto;
 }
 
 #info-panel {
     top: 20px;
     right: 20px;
-    width: 300px;
+    width: 280px;
     max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
     overflow-y: auto;
+}
+
+/* Collapsible Sections */
+.section {
+    margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(30, 40, 60, 0.3);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.section-header:hover {
+    background: rgba(74, 144, 217, 0.2);
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-toggle {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+}
+
+.section-toggle svg {
+    width: 12px;
+    height: 12px;
+}
+
+.section.collapsed .section-toggle {
+    transform: rotate(-90deg);
+}
+
+.section-content {
+    padding: 0 12px 12px 12px;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease;
+    max-height: 1000px;
+    opacity: 1;
+}
+
+.section.collapsed .section-content {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Mobile Panel Toggle Button */
+.panel-toggle {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.panel-toggle:hover {
+    background: rgba(74, 144, 217, 0.3);
+    border-color: var(--accent);
+}
+
+.panel-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+#toggle-controls {
+    bottom: 20px;
+    left: 20px;
+}
+
+#toggle-info {
+    bottom: 20px;
+    right: 20px;
 }
 
 /* Buttons */
@@ -552,4 +659,168 @@ body {
 
 .loading {
     animation: pulse 1s infinite;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 900px) {
+    :root {
+        --panel-width: 240px;
+    }
+
+    #view-controls {
+        display: none;
+        left: 20px;
+        top: 20px;
+        width: var(--panel-width);
+    }
+
+    #view-controls.mobile-visible {
+        display: block;
+    }
+
+    .toolbar {
+        top: auto;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    #help-text {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    :root {
+        --panel-width: calc(100vw - 40px);
+    }
+
+    .panel {
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .panel h2 {
+        font-size: 13px;
+    }
+
+    #controls {
+        top: auto;
+        bottom: 80px;
+        left: 20px;
+        right: 20px;
+        width: auto;
+        max-height: 50vh;
+        display: none;
+    }
+
+    #controls.mobile-visible {
+        display: block;
+    }
+
+    #view-controls {
+        top: auto;
+        bottom: 80px;
+        left: 20px;
+        right: 20px;
+        width: auto;
+        max-height: 50vh;
+    }
+
+    #info-panel {
+        top: auto;
+        bottom: 80px;
+        left: 20px;
+        right: 20px;
+        width: auto;
+        max-height: 50vh;
+        display: none;
+    }
+
+    #info-panel.mobile-visible {
+        display: block;
+    }
+
+    .panel-toggle {
+        display: flex;
+    }
+
+    .toolbar {
+        gap: 6px;
+    }
+
+    .toolbar-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .toolbar-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .bottom-bar {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        justify-content: center;
+        gap: 8px;
+        font-size: 11px;
+    }
+
+    .time-display,
+    .scale-display {
+        padding: 6px 10px;
+    }
+
+    .preset-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+    }
+
+    .preset-btn {
+        padding: 6px 4px;
+        font-size: 10px;
+    }
+
+    .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .toggle-item {
+        font-size: 12px;
+    }
+
+    .toggle-switch {
+        width: 36px;
+        height: 18px;
+    }
+
+    .toggle-switch::after {
+        width: 14px;
+        height: 14px;
+    }
+
+    .toggle-switch.active::after {
+        transform: translateX(18px);
+    }
+
+    #mini-map {
+        display: none !important;
+    }
+
+    .bottom-bar {
+        bottom: 70px;
+    }
+
+    #toggle-controls {
+        bottom: 16px;
+        left: 16px;
+    }
+
+    #toggle-info {
+        bottom: 16px;
+        right: 16px;
+    }
 }

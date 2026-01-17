@@ -114,6 +114,7 @@ export function updateSelectedInfo(planet) {
     }
 
     panel.style.display = 'block';
+    panel.classList.remove('collapsed');
     title.textContent = planet.name;
 
     let compositionHTML = '<div class="composition-bar">';

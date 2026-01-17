@@ -44,59 +44,81 @@
             <input type="range" class="slider" id="speed-slider" min="0" max="100" value="20">
         </div>
 
-        <h3>Display Options</h3>
-        <div class="toggle-group">
-            <div class="toggle-item">
-                <span>Show Orbits</span>
-                <div class="toggle-switch active" data-toggle="orbits"></div>
+        <div class="section" id="section-display">
+            <div class="section-header">
+                <h3>Display Options</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
             </div>
-            <div class="toggle-item">
-                <span>Show Labels</span>
-                <div class="toggle-switch active" data-toggle="labels"></div>
-            </div>
-            <div class="toggle-item">
-                <span>Show Moons</span>
-                <div class="toggle-switch active" data-toggle="moons"></div>
-            </div>
-            <div class="toggle-item">
-                <span>Show Asteroids</span>
-                <div class="toggle-switch active" data-toggle="asteroids"></div>
-            </div>
-            <div class="toggle-item">
-                <span>Show Comets</span>
-                <div class="toggle-switch active" data-toggle="comets"></div>
-            </div>
-            <div class="toggle-item">
-                <span>Show Habitable Zone</span>
-                <div class="toggle-switch" data-toggle="habitable"></div>
-            </div>
-            <div class="toggle-item">
-                <span>Show Trails</span>
-                <div class="toggle-switch" data-toggle="trails"></div>
-            </div>
-            <div class="toggle-item">
-                <span>Show Mini-Map</span>
-                <div class="toggle-switch" data-toggle="minimap"></div>
+            <div class="section-content">
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <span>Show Orbits</span>
+                        <div class="toggle-switch active" data-toggle="orbits"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Labels</span>
+                        <div class="toggle-switch active" data-toggle="labels"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Moons</span>
+                        <div class="toggle-switch active" data-toggle="moons"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Asteroids</span>
+                        <div class="toggle-switch active" data-toggle="asteroids"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Comets</span>
+                        <div class="toggle-switch active" data-toggle="comets"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Habitable Zone</span>
+                        <div class="toggle-switch" data-toggle="habitable"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Trails</span>
+                        <div class="toggle-switch" data-toggle="trails"></div>
+                    </div>
+                    <div class="toggle-item">
+                        <span>Show Mini-Map</span>
+                        <div class="toggle-switch" data-toggle="minimap"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <h3>Generation Config</h3>
-        <div class="config-group">
-            <div class="config-row">
-                <span>Min Planets</span>
-                <input type="number" class="config-input" id="min-planets" value="3" min="1" max="15">
+        <div class="section collapsed" id="section-config">
+            <div class="section-header">
+                <h3>Generation Config</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
             </div>
-            <div class="config-row">
-                <span>Max Planets</span>
-                <input type="number" class="config-input" id="max-planets" value="12" min="1" max="20">
-            </div>
-            <div class="config-row">
-                <span>Max Moons</span>
-                <input type="number" class="config-input" id="max-moons" value="8" min="0" max="20">
-            </div>
-            <div class="config-row">
-                <span>Binary Star %</span>
-                <input type="number" class="config-input" id="binary-chance" value="20" min="0" max="100">
+            <div class="section-content">
+                <div class="config-group">
+                    <div class="config-row">
+                        <span>Min Planets</span>
+                        <input type="number" class="config-input" id="min-planets" value="3" min="1" max="15">
+                    </div>
+                    <div class="config-row">
+                        <span>Max Planets</span>
+                        <input type="number" class="config-input" id="max-planets" value="12" min="1" max="20">
+                    </div>
+                    <div class="config-row">
+                        <span>Max Moons</span>
+                        <input type="number" class="config-input" id="max-moons" value="8" min="0" max="20">
+                    </div>
+                    <div class="config-row">
+                        <span>Binary Star %</span>
+                        <input type="number" class="config-input" id="binary-chance" value="20" min="0" max="100">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -106,64 +128,147 @@
     <div id="view-controls" class="panel">
         <h2>View Controls</h2>
 
-        <h3>Camera Tilt</h3>
-        <div class="slider-group">
-            <div class="slider-label">
-                <span>Vertical Tilt</span>
-                <span id="tilt-value">0°</span>
+        <div class="section" id="section-camera">
+            <div class="section-header">
+                <h3>Camera</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
             </div>
-            <input type="range" class="slider" id="tilt-slider" min="-60" max="60" value="0">
+            <div class="section-content">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Vertical Tilt</span>
+                        <span id="tilt-value">0°</span>
+                    </div>
+                    <input type="range" class="slider" id="tilt-slider" min="-60" max="60" value="0">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Rotation</span>
+                        <span id="rotation-value">0°</span>
+                    </div>
+                    <input type="range" class="slider" id="rotation-slider" min="-180" max="180" value="0">
+                </div>
+            </div>
         </div>
 
-        <div class="slider-group">
-            <div class="slider-label">
-                <span>Rotation</span>
-                <span id="rotation-value">0°</span>
+        <div class="section" id="section-presets">
+            <div class="section-header">
+                <h3>Preset Views</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
             </div>
-            <input type="range" class="slider" id="rotation-slider" min="-180" max="180" value="0">
+            <div class="section-content">
+                <div class="preset-grid">
+                    <button class="preset-btn" data-preset="system">Full System</button>
+                    <button class="preset-btn" data-preset="top">Top Down</button>
+                    <button class="preset-btn" data-preset="angled">Angled</button>
+                    <button class="preset-btn" data-preset="edge">Edge On</button>
+                    <button class="preset-btn" data-preset="inner">Inner Planets</button>
+                    <button class="preset-btn" data-preset="outer">Outer Planets</button>
+                    <button class="preset-btn" data-preset="star">Star Close-up</button>
+                    <button class="preset-btn" data-preset="random">Random Planet</button>
+                </div>
+            </div>
         </div>
 
-        <h3>Preset Views</h3>
-        <div class="preset-grid">
-            <button class="preset-btn" data-preset="system">Full System</button>
-            <button class="preset-btn" data-preset="top">Top Down</button>
-            <button class="preset-btn" data-preset="angled">Angled</button>
-            <button class="preset-btn" data-preset="edge">Edge On</button>
-            <button class="preset-btn" data-preset="inner">Inner Planets</button>
-            <button class="preset-btn" data-preset="outer">Outer Planets</button>
-            <button class="preset-btn" data-preset="star">Star Close-up</button>
-            <button class="preset-btn" data-preset="random">Random Planet</button>
-        </div>
-
-        <h3>Cinematic Mode</h3>
-        <button id="cinematic-btn" class="btn">Start Cinematic</button>
-        <div class="slider-group">
-            <div class="slider-label">
-                <span>Scene Duration</span>
-                <span id="scene-duration-value">8s</span>
+        <div class="section collapsed" id="section-cinematic">
+            <div class="section-header">
+                <h3>Cinematic Mode</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
             </div>
-            <input type="range" class="slider" id="scene-duration-slider" min="3" max="20" value="8">
-        </div>
-        <div id="cinematic-status" class="cinematic-indicator">
-            <div class="cinematic-dot"></div>
-            <span>Cinematic Off</span>
+            <div class="section-content">
+                <button id="cinematic-btn" class="btn">Start Cinematic</button>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Scene Duration</span>
+                        <span id="scene-duration-value">8s</span>
+                    </div>
+                    <input type="range" class="slider" id="scene-duration-slider" min="3" max="20" value="8">
+                </div>
+                <div id="cinematic-status" class="cinematic-indicator">
+                    <div class="cinematic-dot"></div>
+                    <span>Cinematic Off</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="info-panel" class="panel">
         <h2>System Information</h2>
-        <div id="star-info"></div>
-        <div id="system-stats"></div>
-        <h3>Planets</h3>
-        <div id="planet-list" class="planet-list"></div>
-        <div id="selected-info" style="display: none;">
-            <h3 id="selected-title">Selected Object</h3>
-            <div id="selected-details"></div>
+
+        <div class="section" id="section-star">
+            <div class="section-header">
+                <h3>Star Details</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="section-content">
+                <div id="star-info"></div>
+                <div id="system-stats"></div>
+            </div>
+        </div>
+
+        <div class="section" id="section-planets">
+            <div class="section-header">
+                <h3>Planets</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="section-content">
+                <div id="planet-list" class="planet-list"></div>
+            </div>
+        </div>
+
+        <div id="selected-info" class="section" style="display: none;">
+            <div class="section-header">
+                <h3 id="selected-title">Selected Object</h3>
+                <div class="section-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="section-content">
+                <div id="selected-details"></div>
+            </div>
         </div>
     </div>
 
+    <!-- Mobile Panel Toggle Buttons -->
+    <button class="panel-toggle" id="toggle-controls" title="Toggle Controls">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+    <button class="panel-toggle" id="toggle-info" title="Toggle Info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+    </button>
+
     <div id="help-text">
-        Scroll to zoom | Drag to pan | Click planet to select | Double-click to focus | C or Space for Cinematic | F for Fullscreen
+        Scroll/Pinch to zoom | Drag to pan | Click/Tap planet to select | Double-click to focus | C or Space for Cinematic | F for Fullscreen
     </div>
 
     <div class="bottom-bar">

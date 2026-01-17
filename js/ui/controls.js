@@ -10,9 +10,47 @@ import { getCanvas, captureScreenshot } from '../rendering/renderer.js';
 let isDragging = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
+let lastTouchDistance = 0;
+let isTouching = false;
 
 export function initControls(onGenerate) {
     const canvas = getCanvas();
+
+    // Collapsible sections
+    document.querySelectorAll('.section-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+        });
+    });
+
+    // Mobile panel toggles
+    const toggleControls = document.getElementById('toggle-controls');
+    const toggleInfo = document.getElementById('toggle-info');
+    const controlsPanel = document.getElementById('controls');
+    const infoPanel = document.getElementById('info-panel');
+
+    if (toggleControls) {
+        toggleControls.addEventListener('click', () => {
+            controlsPanel.classList.toggle('mobile-visible');
+            infoPanel.classList.remove('mobile-visible');
+        });
+    }
+
+    if (toggleInfo) {
+        toggleInfo.addEventListener('click', () => {
+            infoPanel.classList.toggle('mobile-visible');
+            controlsPanel.classList.remove('mobile-visible');
+        });
+    }
+
+    // Close panels when clicking on canvas (mobile)
+    canvas.addEventListener('click', (e) => {
+        if (window.innerWidth <= 600) {
+            controlsPanel.classList.remove('mobile-visible');
+            infoPanel.classList.remove('mobile-visible');
+        }
+    }, true);
 
     // Mouse controls
     canvas.addEventListener('mousedown', (e) => {
@@ -46,6 +84,48 @@ export function initControls(onGenerate) {
         const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
         camera.targetZoom = Math.max(0.1, Math.min(10, camera.targetZoom * zoomFactor));
     });
+
+    // Touch controls for mobile
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            isTouching = true;
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+            lastTouchDistance = getTouchDistance(e.touches);
+        }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && isTouching) {
+            const dx = e.touches[0].clientX - lastMouseX;
+            const dy = e.touches[0].clientY - lastMouseY;
+            camera.targetX -= dx / camera.zoom;
+            camera.targetY -= dy / camera.zoom;
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+            camera.following = null;
+        } else if (e.touches.length === 2) {
+            const distance = getTouchDistance(e.touches);
+            if (lastTouchDistance > 0) {
+                const scale = distance / lastTouchDistance;
+                camera.targetZoom = Math.max(0.1, Math.min(10, camera.targetZoom * scale));
+            }
+            lastTouchDistance = distance;
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) {
+            isTouching = false;
+            lastTouchDistance = 0;
+        } else if (e.touches.length === 1) {
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+            lastTouchDistance = 0;
+        }
+    }, { passive: true });
 
     canvas.addEventListener('click', (e) => {
         if (!state.solarSystem) return;
@@ -406,4 +486,10 @@ export function updateCinematic() {
     if (elapsed > cinematic.sceneDuration) {
         nextCinematicScene();
     }
+}
+
+function getTouchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
 }
