@@ -19,7 +19,8 @@ export const displayOptions = {
     comets: true,
     habitable: false,
     trails: false,
-    minimap: false
+    minimap: false,
+    interstellar: true
 };
 
 export const cinematic = {

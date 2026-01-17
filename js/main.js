@@ -4,11 +4,12 @@ import { CONFIG } from './config.js';
 import { rng, setRandomSeed, getRng } from './core/rng.js';
 import { camera, resetCamera, updateCamera } from './core/camera.js';
 import { state, displayOptions, resetState } from './core/state.js';
+import { checkForEvents, clearInterstellarObjects } from './core/events.js';
 import { generateSolarSystem } from './generation/system.js';
 import { initRenderer, resizeCanvas, render, getCanvas } from './rendering/renderer.js';
 import { getPlanetPosition } from './rendering/utils.js';
 import { updateInfoPanel, updateSelectedInfo, updateTimeDisplay, updateZoomDisplay } from './ui/panels.js';
-import { initControls, updateCinematic, stopCinematic } from './ui/controls.js';
+import { initControls, updateCinematic, stopCinematic, updateNotifications } from './ui/controls.js';
 
 // Initialize the application
 function init() {
@@ -38,6 +39,7 @@ function generateNewSystem() {
     // Reset state
     resetState();
     resetCamera();
+    clearInterstellarObjects();
 
     // Generate the solar system (pass seed for preset detection)
     state.solarSystem = generateSolarSystem(getRng(), seed);
@@ -61,6 +63,12 @@ function gameLoop(timestamp) {
         const pos = getPlanetPosition(camera.following, state.time);
         camera.targetX = pos.x;
         camera.targetY = pos.y;
+    }
+
+    // Check for random interstellar events
+    if (state.solarSystem && !state.isPaused) {
+        checkForEvents(getRng(), state.solarSystem.star, state.time);
+        updateNotifications();
     }
 
     // Update cinematic mode

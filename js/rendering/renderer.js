@@ -3,6 +3,8 @@
 import { CONFIG } from '../config.js';
 import { camera, worldToScreen, applyTransform, getZoomScale, shouldRenderAtZoom } from '../core/camera.js';
 import { state, displayOptions } from '../core/state.js';
+import { getActiveInterstellarObjects, getPassingSystems } from '../core/events.js';
+import { getInterstellarPosition } from '../generation/interstellar.js';
 import {
     lightenColor, darkenColor, getPlanetPosition, getMoonPosition,
     getSecondaryStarPosition, getCometPosition
@@ -66,6 +68,12 @@ export function render() {
         state.solarSystem.comets.forEach(comet => {
             drawComet(comet);
         });
+    }
+
+    // Draw interstellar objects
+    if (displayOptions.interstellar) {
+        drawInterstellarObjects();
+        drawPassingSystems();
     }
 
     if (displayOptions.minimap) {
@@ -693,6 +701,291 @@ function drawMiniMap() {
     miniMapCtx.strokeStyle = '#4a90d9';
     miniMapCtx.lineWidth = 1;
     miniMapCtx.strokeRect(viewX, viewY, viewWidth, viewHeight);
+}
+
+// Interstellar object rendering
+function drawInterstellarObjects() {
+    const objects = getActiveInterstellarObjects();
+
+    objects.forEach(obj => {
+        const objPos = getInterstellarPosition(obj, state.time);
+        const pos = worldToScreen(objPos.x, objPos.y, canvas);
+
+        switch (obj.type) {
+            case 'interstellarComet':
+                drawInterstellarComet(obj, pos, objPos);
+                break;
+            case 'roguePlanet':
+                drawRoguePlanet(obj, pos, objPos);
+                break;
+            case 'rogueBlackHole':
+                drawRogueBlackHole(obj, pos, objPos);
+                break;
+        }
+    });
+}
+
+function drawInterstellarComet(comet, pos, worldPos) {
+    const distanceFromStar = worldPos.r;
+    const withinTailRadius = distanceFromStar < comet.tailActivationRadius;
+
+    const tailIntensity = withinTailRadius ?
+        Math.pow(1 - distanceFromStar / comet.tailActivationRadius, 0.5) * comet.tailBrightness : 0;
+
+    // Draw tail
+    if (withinTailRadius && tailIntensity > 0.1) {
+        const tailAngle = worldPos.angle + Math.PI;
+        const tailLength = 60 * tailIntensity * camera.zoom;
+
+        // Ion tail
+        const tailGradient = ctx.createLinearGradient(pos.x, pos.y,
+            pos.x + Math.cos(tailAngle) * tailLength,
+            pos.y + Math.sin(tailAngle) * tailLength);
+        tailGradient.addColorStop(0, `rgba(${comet.tailColor.r}, ${comet.tailColor.g}, ${comet.tailColor.b}, ${tailIntensity * 0.9})`);
+        tailGradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        ctx.lineTo(pos.x + Math.cos(tailAngle - 0.06) * tailLength, pos.y + Math.sin(tailAngle - 0.06) * tailLength);
+        ctx.lineTo(pos.x + Math.cos(tailAngle + 0.06) * tailLength, pos.y + Math.sin(tailAngle + 0.06) * tailLength);
+        ctx.closePath();
+        ctx.fillStyle = tailGradient;
+        ctx.fill();
+
+        // Dust tail
+        const dustTailLength = 40 * tailIntensity * camera.zoom;
+        const dustGradient = ctx.createLinearGradient(pos.x, pos.y,
+            pos.x + Math.cos(tailAngle + 0.25) * dustTailLength,
+            pos.y + Math.sin(tailAngle + 0.25) * dustTailLength);
+        dustGradient.addColorStop(0, `rgba(${comet.dustColor.r}, ${comet.dustColor.g}, ${comet.dustColor.b}, ${tailIntensity * 0.6})`);
+        dustGradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        ctx.lineTo(pos.x + Math.cos(tailAngle + 0.15) * dustTailLength, pos.y + Math.sin(tailAngle + 0.15) * dustTailLength);
+        ctx.lineTo(pos.x + Math.cos(tailAngle + 0.35) * dustTailLength, pos.y + Math.sin(tailAngle + 0.35) * dustTailLength);
+        ctx.closePath();
+        ctx.fillStyle = dustGradient;
+        ctx.fill();
+    }
+
+    // Nucleus with coma
+    const comaSize = withinTailRadius ?
+        comet.size * camera.zoom * (2.5 + tailIntensity * 4) :
+        comet.size * camera.zoom * 2;
+
+    const nucleusGradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, comaSize);
+    nucleusGradient.addColorStop(0, '#ffffff');
+    nucleusGradient.addColorStop(0.3, comet.color);
+    nucleusGradient.addColorStop(1, 'transparent');
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, comaSize, 0, Math.PI * 2);
+    ctx.fillStyle = nucleusGradient;
+    ctx.fill();
+
+    // Label with "I/" prefix to indicate interstellar
+    if (displayOptions.labels) {
+        ctx.fillStyle = '#aaddffcc';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(comet.name, pos.x, pos.y + comaSize + 12);
+    }
+}
+
+function drawRoguePlanet(planet, pos, worldPos) {
+    const visualRadius = getZoomScale(planet.visualRadius, {
+        minSize: 3,
+        maxSize: 35,
+        zoomPower: 0.75,
+        threshold: 0.25
+    });
+
+    // Planet body with cold, dark appearance
+    const gradient = ctx.createRadialGradient(
+        pos.x - visualRadius * 0.3, pos.y - visualRadius * 0.3, 0,
+        pos.x, pos.y, visualRadius
+    );
+    gradient.addColorStop(0, lightenColor(planet.color, 15));
+    gradient.addColorStop(0.5, planet.color);
+    gradient.addColorStop(1, darkenColor(planet.color, 40));
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, visualRadius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Bands for gas giants
+    if (planet.hasBands && visualRadius > 5) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, visualRadius, 0, Math.PI * 2);
+        ctx.clip();
+
+        for (let i = 0; i < planet.bandCount; i++) {
+            const y = pos.y - visualRadius + (i / planet.bandCount) * visualRadius * 2;
+            const height = visualRadius * 2 / planet.bandCount;
+            ctx.fillStyle = i % 2 === 0 ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.12)';
+            ctx.fillRect(pos.x - visualRadius, y, visualRadius * 2, height);
+        }
+        ctx.restore();
+    }
+
+    // Subtle cold glow for rogue planets (they're dark but might have residual heat)
+    const glowGradient = ctx.createRadialGradient(pos.x, pos.y, visualRadius, pos.x, pos.y, visualRadius * 1.5);
+    glowGradient.addColorStop(0, 'rgba(80, 100, 120, 0.2)');
+    glowGradient.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, visualRadius * 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = glowGradient;
+    ctx.fill();
+
+    // Label
+    if (displayOptions.labels) {
+        ctx.fillStyle = '#99aabbcc';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(planet.name, pos.x, pos.y + visualRadius + 12);
+    }
+}
+
+function drawRogueBlackHole(bh, pos, worldPos) {
+    const visualRadius = getZoomScale(bh.visualRadius, {
+        minSize: 4,
+        maxSize: 40,
+        zoomPower: 0.8,
+        threshold: 0.2
+    });
+
+    // Event horizon (pure black)
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, visualRadius, 0, Math.PI * 2);
+    ctx.fillStyle = '#000000';
+    ctx.fill();
+
+    // Photon sphere / gravitational lensing ring
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, visualRadius * 1.5, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 200, 100, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Accretion disk if present
+    if (bh.hasAccretionDisk) {
+        const diskGradient = ctx.createRadialGradient(pos.x, pos.y, visualRadius * 1.2, pos.x, pos.y, visualRadius * 4);
+        diskGradient.addColorStop(0, bh.diskColor + 'cc');
+        diskGradient.addColorStop(0.5, bh.diskColor + '66');
+        diskGradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.ellipse(pos.x, pos.y, visualRadius * 4, visualRadius * 1.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = diskGradient;
+        ctx.fill();
+
+        // Hot inner disk
+        const innerDiskGradient = ctx.createRadialGradient(pos.x, pos.y, visualRadius, pos.x, pos.y, visualRadius * 2);
+        innerDiskGradient.addColorStop(0, '#ffffff88');
+        innerDiskGradient.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.ellipse(pos.x, pos.y, visualRadius * 2, visualRadius * 0.8, 0, 0, Math.PI * 2);
+        ctx.fillStyle = innerDiskGradient;
+        ctx.fill();
+    }
+
+    // Gravitational lensing effect (distorted background stars)
+    const lensRadius = visualRadius * 3;
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + state.time * 0.0001;
+        const dist = lensRadius * (0.8 + Math.sin(state.time * 0.001 + i) * 0.2);
+        const x = pos.x + Math.cos(angle) * dist;
+        const y = pos.y + Math.sin(angle) * dist;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fill();
+    }
+
+    // Label
+    if (displayOptions.labels) {
+        ctx.fillStyle = '#ff8866cc';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(bh.name, pos.x, pos.y + visualRadius * 2 + 12);
+        ctx.font = '9px sans-serif';
+        ctx.fillStyle = '#ff886688';
+        ctx.fillText(`${bh.mass.toFixed(1)} M☉`, pos.x, pos.y + visualRadius * 2 + 24);
+    }
+}
+
+// Draw passing star systems
+function drawPassingSystems() {
+    const systems = getPassingSystems();
+
+    systems.forEach(sys => {
+        const sysPos = getInterstellarPosition(sys, state.time);
+        const pos = worldToScreen(sysPos.x, sysPos.y, canvas);
+
+        // Draw the star
+        const starVisualRadius = sys.star.visualRadius * camera.zoom * 0.5;
+
+        // Star glow
+        const glowRadius = starVisualRadius * 2.5;
+        const glowGradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowRadius);
+        glowGradient.addColorStop(0, sys.star.color);
+        glowGradient.addColorStop(0.3, sys.star.color + 'aa');
+        glowGradient.addColorStop(0.6, sys.star.color + '44');
+        glowGradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
+        ctx.fill();
+
+        // Star body
+        const bodyGradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, starVisualRadius);
+        bodyGradient.addColorStop(0, '#ffffff');
+        bodyGradient.addColorStop(0.4, sys.star.color);
+        bodyGradient.addColorStop(1, darkenColor(sys.star.color, 25));
+
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, starVisualRadius, 0, Math.PI * 2);
+        ctx.fillStyle = bodyGradient;
+        ctx.fill();
+
+        // Draw planets orbiting the passing star
+        sys.planets.forEach(planet => {
+            const px = pos.x + Math.cos(planet.angle) * planet.orbitRadiusLocal * camera.zoom;
+            const py = pos.y + Math.sin(planet.angle) * planet.orbitRadiusLocal * camera.zoom;
+            const planetSize = Math.max(1.5, planet.size * camera.zoom * 0.3);
+
+            // Orbit path
+            if (displayOptions.orbits && camera.zoom > 0.3) {
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, planet.orbitRadiusLocal * camera.zoom, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(100, 150, 255, 0.1)';
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            }
+
+            // Planet
+            ctx.beginPath();
+            ctx.arc(px, py, planetSize, 0, Math.PI * 2);
+            ctx.fillStyle = planet.color;
+            ctx.fill();
+        });
+
+        // Label
+        if (displayOptions.labels) {
+            ctx.fillStyle = '#ffddaacc';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(sys.name, pos.x, pos.y + starVisualRadius + 15);
+            ctx.font = '9px sans-serif';
+            ctx.fillStyle = '#ffddaa88';
+            ctx.fillText(`Class ${sys.star.class} + ${sys.planets.length} planets`, pos.x, pos.y + starVisualRadius + 27);
+        }
+    });
 }
 
 // Export for screenshot functionality

@@ -440,6 +440,34 @@ body {
     color: var(--text-secondary);
 }
 
+/* Interstellar Objects */
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 4px 0;
+    background: rgba(40, 50, 80, 0.3);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.interstellar-item {
+    cursor: pointer;
+    transition: background 0.2s;
+    border-left: 2px solid var(--accent);
+}
+
+.interstellar-item:hover {
+    background: rgba(74, 144, 217, 0.3);
+}
+
+.object-type {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
 /* Composition Bar */
 .composition-bar {
     height: 8px;

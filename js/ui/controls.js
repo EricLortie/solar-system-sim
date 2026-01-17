@@ -3,6 +3,7 @@
 import { CONFIG } from '../config.js';
 import { camera, resetCamera, screenToWorld } from '../core/camera.js';
 import { state, displayOptions, cinematic } from '../core/state.js';
+import { getUnreadNotifications, markAllNotificationsRead, getActiveInterstellarObjects, getPassingSystems } from '../core/events.js';
 import { updateInfoPanel, updateSelectedInfo, updateCinematicStatus } from './panels.js';
 import { getPlanetPosition } from '../rendering/utils.js';
 import { getCanvas, captureScreenshot } from '../rendering/renderer.js';
@@ -647,4 +648,131 @@ function getTouchDistance(touches) {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Notification system for interstellar events
+let notificationContainer = null;
+let lastNotificationCount = 0;
+
+export function updateNotifications() {
+    const notifications = getUnreadNotifications();
+
+    // Create container if needed
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.cssText = `
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        `;
+        document.body.appendChild(notificationContainer);
+    }
+
+    // Only show new notifications
+    if (notifications.length > lastNotificationCount) {
+        const newNotifications = notifications.slice(lastNotificationCount);
+
+        newNotifications.forEach(notif => {
+            showNotificationToast(notif);
+        });
+    }
+
+    lastNotificationCount = notifications.length;
+
+    // Update interstellar info panel section
+    updateInterstellarInfo();
+}
+
+function showNotificationToast(notification) {
+    const toast = document.createElement('div');
+    toast.className = `notification-toast priority-${notification.priority}`;
+    toast.style.cssText = `
+        background: ${notification.priority === 'high' ? 'rgba(255, 100, 100, 0.9)' : 'rgba(40, 60, 80, 0.95)'};
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 13px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        pointer-events: auto;
+        cursor: pointer;
+        animation: slideIn 0.3s ease-out;
+        border-left: 3px solid ${notification.priority === 'high' ? '#ff6666' : '#4a90d9'};
+    `;
+    toast.textContent = notification.message;
+
+    // Add animation
+    const style = document.createElement('style');
+    if (!document.getElementById('notification-styles')) {
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; transform: translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    notificationContainer.appendChild(toast);
+
+    // Auto-dismiss after delay
+    const dismissTime = notification.priority === 'high' ? 6000 : 4000;
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, dismissTime);
+
+    // Click to dismiss
+    toast.addEventListener('click', () => {
+        toast.style.animation = 'fadeOut 0.2s ease-out forwards';
+        setTimeout(() => toast.remove(), 200);
+    });
+}
+
+function updateInterstellarInfo() {
+    const interstellarSection = document.getElementById('section-interstellar');
+    if (!interstellarSection) return;
+
+    const content = interstellarSection.querySelector('.section-content');
+    if (!content) return;
+
+    const objects = getActiveInterstellarObjects();
+    const systems = getPassingSystems();
+
+    if (objects.length === 0 && systems.length === 0) {
+        content.innerHTML = '<div class="info-item"><span>No active visitors</span></div>';
+        return;
+    }
+
+    let html = '';
+
+    objects.forEach(obj => {
+        const typeIcon = obj.type === 'rogueBlackHole' ? '\u26ab' :
+                        obj.type === 'roguePlanet' ? '\u26aa' : '\u2604';
+        html += `<div class="info-item interstellar-item" data-object-id="${obj.id}">
+            <span>${typeIcon} ${obj.name}</span>
+            <span class="object-type">${obj.typeName}</span>
+        </div>`;
+    });
+
+    systems.forEach(sys => {
+        html += `<div class="info-item interstellar-item" data-object-id="${sys.id}">
+            <span>\u2b50 ${sys.name}</span>
+            <span class="object-type">${sys.planets.length} planets</span>
+        </div>`;
+    });
+
+    content.innerHTML = html;
 }
