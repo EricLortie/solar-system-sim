@@ -108,6 +108,60 @@ function spawnInterstellarObject(rng, star, time) {
     });
 }
 
+// Manually spawn a specific type of interstellar object
+export function spawnInterstellarByType(rng, star, time, objectType) {
+    let obj;
+
+    switch (objectType) {
+        case 'interstellarComet':
+            obj = generateInterstellarComet(rng, star);
+            break;
+        case 'roguePlanet':
+            obj = generateRoguePlanet(rng, star);
+            break;
+        case 'rogueBlackHole':
+            obj = generateRogueBlackHole(rng, star);
+            break;
+        case 'passingSystem':
+            obj = generatePassingSystem(rng, star);
+            break;
+        case 'random':
+            // Pick random type based on probabilities
+            const roll = rng.next();
+            let cumProb = 0;
+            let selectedType = 'interstellarComet';
+            for (const [key, type] of Object.entries(INTERSTELLAR_TYPES)) {
+                cumProb += type.probability;
+                if (roll < cumProb) {
+                    selectedType = key;
+                    break;
+                }
+            }
+            return spawnInterstellarByType(rng, star, time, selectedType);
+        default:
+            obj = generateInterstellarComet(rng, star);
+    }
+
+    // Add to appropriate list
+    if (objectType === 'passingSystem') {
+        eventState.passingSystems.push(obj);
+    } else {
+        eventState.interstellarObjects.push(obj);
+    }
+
+    // Add notification
+    addNotification(obj, 'detected', time);
+
+    // Log the event
+    eventState.eventLog.push({
+        type: 'spawn',
+        object: obj,
+        time: time
+    });
+
+    return obj;
+}
+
 // Update positions and lifecycle of objects
 function updateInterstellarObjects(time) {
     // Update interstellar objects

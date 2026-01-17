@@ -3,7 +3,8 @@
 import { CONFIG } from '../config.js';
 import { camera, resetCamera, screenToWorld } from '../core/camera.js';
 import { state, displayOptions, cinematic } from '../core/state.js';
-import { getUnreadNotifications, markAllNotificationsRead, getActiveInterstellarObjects, getPassingSystems } from '../core/events.js';
+import { getUnreadNotifications, markAllNotificationsRead, getActiveInterstellarObjects, getPassingSystems, spawnInterstellarByType } from '../core/events.js';
+import { getRng } from '../core/rng.js';
 import { updateInfoPanel, updateSelectedInfo, updateCinematicStatus } from './panels.js';
 import { getPlanetPosition } from '../rendering/utils.js';
 import { getCanvas, captureScreenshot } from '../rendering/renderer.js';
@@ -275,6 +276,23 @@ export function initControls(onGenerate) {
         document.getElementById('rotation-slider').value = 0;
         document.getElementById('rotation-value').textContent = '0°';
     });
+
+    // Interstellar spawn buttons
+    document.querySelectorAll('.spawn-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!state.solarSystem) return;
+            const objectType = btn.dataset.spawn;
+            spawnInterstellarByType(getRng(), state.solarSystem.star, state.time, objectType);
+        });
+    });
+
+    const spawnRandomBtn = document.getElementById('spawn-random-btn');
+    if (spawnRandomBtn) {
+        spawnRandomBtn.addEventListener('click', () => {
+            if (!state.solarSystem) return;
+            spawnInterstellarByType(getRng(), state.solarSystem.star, state.time, 'random');
+        });
+    }
 
     // Screenshot
     document.getElementById('screenshot-btn').addEventListener('click', () => {
