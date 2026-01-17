@@ -71,7 +71,7 @@ export function generateFromPreset(preset, rng) {
             ringColor: `rgba(${rng.randomInt(150, 200)}, ${rng.randomInt(150, 180)}, ${rng.randomInt(130, 160)}, 0.5)`,
             trail: [],
             selected: false,
-            visualRadius: Math.max(4, Math.min(25, 4 + Math.log(pData.radius + 1) * 8)),
+            visualRadius: Math.max(4, Math.min(30, 4 + Math.sqrt(pData.radius) * 5)),
             temperature: temperature,
             inHabitableZone: pData.orbitRadiusAU >= star.habitableZoneInner && pData.orbitRadiusAU <= star.habitableZoneOuter,
             beyondFrostLine: pData.orbitRadiusAU > star.frostLine,

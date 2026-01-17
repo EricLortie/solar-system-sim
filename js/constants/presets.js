@@ -90,13 +90,13 @@ export const SOL_SYSTEM = {
             radius: 11.21,
             mass: 317.8,
             eccentricity: 0.049,
-            color: '#e8c48a',
+            color: '#d4a574',
             atmosphere: 'Hydrogen/Helium',
             composition: { hydrogen: 0.75, helium: 0.24, other: 0.01 },
-            hasRings: true,
+            hasRings: false,  // Jupiter's rings are too faint to show
             hasBands: true,
             hasStorm: true,
-            stormSize: 0.25,
+            stormSize: 0.28,
             moons: [
                 { name: 'Io', type: 'volcanic', orbitRadius: 35, size: 0.286, color: '#ffa500' },
                 { name: 'Europa', type: 'icy', orbitRadius: 45, size: 0.245, color: '#e8f4f8' },
